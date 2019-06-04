@@ -19,6 +19,11 @@ from pysc2.env import environment
 from pysc2.lib import features
 from pysc2.lib import actions
 
+## my imports
+from baselines.deepq.utils import ObservationInput
+from gym.spaces import Space, Tuple, Box, Discrete, MultiDiscrete, MultiBinary, Dict
+##
+
 _PLAYER_RELATIVE = features.SCREEN_FEATURES.player_relative.index
 _PLAYER_FRIENDLY = 1
 _PLAYER_NEUTRAL = 3  # beacon/minerals
@@ -189,8 +194,14 @@ def learn(env,
   sess = U.make_session(num_cpu=num_cpu)
   sess.__enter__()
 
+  #def make_obs_ph(name):
+    #return U.BatchInput((16, 16), name=name)
+  obs_spec = env.observation_spec()[0]
+  screen_dim = obs_spec['feature_screen'][1:3]
+
   def make_obs_ph(name):
-    return U.BatchInput((16, 16), name=name)
+    #return ObservationInput(ob_space, name=name)
+    return ObservationInput(Box(low=0.0, high=screen_dim[0], shape=(screen_dim[0],screen_dim[1],1)), name=name)
 
   act_x, train_x, update_target_x, debug_x = deepq.build_train(
     make_obs_ph=make_obs_ph,
@@ -255,7 +266,9 @@ def learn(env,
   # Select all marines first
   obs = env.step(actions=[sc2_actions.FunctionCall(_SELECT_ARMY, [_SELECT_ALL])])
 
-  player_relative = obs[0].observation["screen"][_PLAYER_RELATIVE]
+  print(obs[0].observation.keys())
+
+  player_relative = obs[0].observation["feature_screen"][_PLAYER_RELATIVE]
 
   screen = (player_relative == _PLAYER_NEUTRAL).astype(int) #+ path_memory
 
@@ -313,7 +326,7 @@ def learn(env,
 
       obs = env.step(actions=new_action)
 
-      player_relative = obs[0].observation["screen"][_PLAYER_RELATIVE]
+      player_relative = obs[0].observation["feature_screen"][_PLAYER_RELATIVE]
       new_screen = (player_relative == _PLAYER_NEUTRAL).astype(int)
 
       player_y, player_x = (player_relative == _PLAYER_FRIENDLY).nonzero()
@@ -334,7 +347,7 @@ def learn(env,
 
       if done:
         obs = env.reset()
-        player_relative = obs[0].observation["screen"][_PLAYER_RELATIVE]
+        player_relative = obs[0].observation["feature_screen"][_PLAYER_RELATIVE]
         screent = (player_relative == _PLAYER_NEUTRAL).astype(int)
 
         player_y, player_x = (player_relative == _PLAYER_FRIENDLY).nonzero()

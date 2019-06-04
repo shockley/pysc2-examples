@@ -9,7 +9,10 @@ from baselines.common import set_global_seeds, explained_variance
 
 from baselines.a2c.utils import discount_with_dones
 from baselines.a2c.utils import Scheduler, find_trainable_variables
-from baselines.a2c.utils import cat_entropy, mse
+#from baselines.a2c.utils import cat_entropy, mse
+from baselines.a2c.utils import cat_entropy
+def mse(pred, target):
+    return tf.square(pred-target)/2
 # from a2c import kfac
 
 from pysc2.env import environment

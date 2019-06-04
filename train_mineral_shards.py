@@ -100,12 +100,14 @@ def main():
 
   if (FLAGS.algorithm == "deepq"):
 
+
     with sc2_env.SC2Env(
         map_name="CollectMineralShards",
         step_mul=step_mul,
-        visualize=True,
-        screen_size_px=(16, 16),
-        minimap_size_px=(16, 16)) as env:
+        #screen_size_px=(16, 16),
+        #minimap_size_px=(16, 16),
+        agent_interface_format=sc2_env.AgentInterfaceFormat(feature_dimensions=sc2_env.Dimensions(screen=16, minimap=16)),
+        visualize=True) as env:
 
       model = deepq.models.cnn_to_mlp(
         convs=[(16, 8, 4), (32, 4, 2)], hiddens=[256], dueling=True)
@@ -132,8 +134,9 @@ def main():
     with sc2_env.SC2Env(
         map_name="CollectMineralShards",
         step_mul=step_mul,
-        screen_size_px=(32, 32),
-        minimap_size_px=(32, 32),
+        #screen_size_px=(32, 32),
+        #minimap_size_px=(32, 32),
+        agent_interface_format=sc2_env.AgentInterfaceFormat(feature_dimensions=sc2_env.Dimensions(screen=32, minimap=32)),
         visualize=True) as env:
 
       model = deepq.models.cnn_to_mlp(
@@ -296,7 +299,6 @@ def a2c_callback(locals, globals):
     model.save(filename)
     print("save best mean_100ep_reward model to %s" % filename)
     last_filename = filename
-
 
 if __name__ == '__main__':
   main()

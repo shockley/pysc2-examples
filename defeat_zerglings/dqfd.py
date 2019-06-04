@@ -21,6 +21,11 @@ from pysc2.lib import actions
 
 from common import common
 
+## my imports
+from baselines.deepq.utils import ObservationInput
+from gym.spaces import Space, Tuple, Box, Discrete, MultiDiscrete, MultiBinary, Dict
+##
+
 _PLAYER_RELATIVE = features.SCREEN_FEATURES.player_relative.index
 
 _UNIT_TYPE = features.SCREEN_FEATURES.unit_type.index
@@ -208,8 +213,14 @@ act: ActWrapper
   sess = U.make_session(num_cpu=num_cpu)
   sess.__enter__()
 
+  #def make_obs_ph(name):
+  #  return U.BatchInput((64, 64), name=name)
+  
+  obs_spec = env.observation_spec()[0]
+  screen_dim = obs_spec['feature_screen'][1:3]
+
   def make_obs_ph(name):
-    return U.BatchInput((64, 64), name=name)
+    return ObservationInput(Box(low=0.0, high=screen_dim[0], shape=(screen_dim[0],screen_dim[1],1)), name=name)
 
   act, train, update_target, debug = deepq.build_train(
     make_obs_ph=make_obs_ph,
@@ -253,7 +264,7 @@ act: ActWrapper
   obs = env.reset()
   # Select all marines first
 
-  player_relative = obs[0].observation["screen"][_PLAYER_RELATIVE]
+  player_relative = obs[0].observation["feature_screen"][_PLAYER_RELATIVE]
 
   screen = player_relative
 
@@ -315,14 +326,14 @@ act: ActWrapper
         #print(e)
         1  # Do nothing
 
-      player_relative = obs[0].observation["screen"][_PLAYER_RELATIVE]
+      player_relative = obs[0].observation["feature_screen"][_PLAYER_RELATIVE]
       new_screen = player_relative
 
       rew += obs[0].reward
 
       done = obs[0].step_type == environment.StepType.LAST
 
-      selected = obs[0].observation["screen"][_SELECTED]
+      selected = obs[0].observation["feature_screen"][_SELECTED]
       player_y, player_x = (selected == _PLAYER_FRIENDLY).nonzero()
 
       if (len(player_y) > 0):
@@ -351,7 +362,7 @@ act: ActWrapper
       if done:
         print("Episode Reward : %s" % episode_rewards[-1])
         obs = env.reset()
-        player_relative = obs[0].observation["screen"][
+        player_relative = obs[0].observation["feature_screen"][
           _PLAYER_RELATIVE]
 
         screen = player_relative

@@ -75,8 +75,10 @@ def main():
       map_name="DefeatZerglingsAndBanelings",
       step_mul=step_mul,
       visualize=True,
+      agent_interface_format=sc2_env.AgentInterfaceFormat(feature_dimensions=sc2_env.Dimensions(screen=16, minimap=16)),
       game_steps_per_episode=steps * step_mul) as env:
-
+    obs = env.reset()
+    print(obs[0].observation)
     model = deepq.models.cnn_to_mlp(
       convs=[(32, 8, 4), (64, 4, 2), (64, 3, 1)],
       hiddens=[256],
